@@ -109,69 +109,136 @@ canvas.width = innerWidth;
 canvas.height = innerHeight;
 
 var mouse = {
-    x: innerWidth / 2,
-    y: innerHeight / 2
+	x: innerWidth / 2,
+	y: innerHeight / 2
 };
 
 var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66'];
 
 // Event Listeners
 addEventListener('mousemove', function (event) {
-    mouse.x = event.clientX;
-    mouse.y = event.clientY;
+	mouse.x = event.clientX;
+	mouse.y = event.clientY;
 });
 
 addEventListener('resize', function () {
-    canvas.width = innerWidth;
-    canvas.height = innerHeight;
+	canvas.width = innerWidth;
+	canvas.height = innerHeight;
 
-    init();
+	init();
 });
 
 //Utility Functions
 
-function getDistance(x1, y1, x2, y2) {
-    var xDistance = x2 - x1;
-    var yDistance = y2 - y1;
+function Distance(x1, y1, x2, y2) {
+	var xDistance = x2 - x1;
+	var yDistance = y2 - y1;
 
-    return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+	return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+}
+
+function randomIntFromRange(min, max) {
+	return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 // Objects
 function Sprite(x, y, img, width, height) {
-    this.x = x;
-    this.y = y;
-    this.img = img;
-    this.dWidth = width;
-    this.dHeight = height;
+	this.x = x;
+	this.y = y;
+	this.img = img;
+	this.dWidth = width;
+	this.dHeight = height;
+}
+
+function Enemy(x, y, img, width, height) {
+	var _this = this;
+
+	this.x = x;
+	this.y = y;
+	this.img = img;
+	this.dWidth = width;
+	this.dHeight = height;
+	this.velocity = {
+		x: Math.random() - 0.5,
+		y: Math.random() - 0.5
+	};
+
+	this.update = function (enemies) {
+		_this.draw();
+
+		for (var i = 0; i < enemies.length; i++) {
+			if (_this === enemies[i]) continue;
+			if (Distance(_this.x, _this.y, enemies[i].x, enemies[i].y) - 25 < 0) {
+				//THIS NUMBER DETERMINES BOUNCE DISTANCE ^^^
+				_this.velocity.x = -_this.velocity.x;
+				_this.velocity.y = -_this.velocity.y;
+			}
+		}
+
+		if (_this.x <= 0 || _this.x >= innerWidth) {
+			_this.velocity.x = -_this.velocity.x;
+		}
+
+		if (_this.y <= 0 || _this.y >= innerHeight) {
+			_this.velocity.y = -_this.velocity.y;
+		}
+
+		_this.x += _this.velocity.x;
+		_this.y += _this.velocity.y;
+	};
 }
 
 Object.prototype.draw = function () {
-    c.beginPath();
-    c.drawImage(this.img, this.x, this.y, this.dWidth, this.dHeight);
-    c.fillStyle = this.color;
-    c.fill();
-    c.closePath();
+	c.beginPath();
+	c.drawImage(this.img, this.x, this.y, this.dWidth, this.dHeight);
+	c.fillStyle = this.color;
+	c.fill();
+	c.closePath();
 };
 
 Object.prototype.update = function () {
-    this.draw();
+	this.draw();
 };
 
 // Implementation
-var sprite1 = void 0;
+var player1 = void 0;
+var enemies = void 0;
 function init() {
-    sprite1 = new Sprite(undefined, undefined, document.getElementById("blackdog"), 50, 50);
+	enemies = [];
+	player1 = new Sprite(undefined, undefined, document.getElementById("blackdog"), 50, 50);
+
+	for (var i = 0; i < 80; i++) {
+		var x = randomIntFromRange(canvas.width - canvas.width, canvas.width);
+		var y = randomIntFromRange(canvas.height - canvas.height, canvas.height);
+
+		if (i !== 0) {
+			for (var j = 0; j < enemies.length; j++) {
+				if (Distance(x, y, enemies[j].x, enemies[j].y) - 25 < 0) {
+					//THIS NUMBER DETERMINES BOUNCE DISTANCE ^^^
+					x = randomIntFromRange(canvas.width - canvas.width, canvas.width);
+					y = randomIntFromRange(canvas.height - canvas.height, canvas.height);
+
+					j = -1;
+				}
+			}
+		}
+
+		enemies.push(new Enemy(x, y, document.getElementById("enemy"), 50, 50));
+	}
 }
 
 // Animation Loop
 function animate() {
-    requestAnimationFrame(animate);
-    c.clearRect(0, 0, canvas.width, canvas.height);
+	requestAnimationFrame(animate);
+	c.clearRect(0, 0, canvas.width, canvas.height);
 
-    sprite1.x = mouse.x;
-    sprite1.y = mouse.y;
-    sprite1.update();
+	player1.x = mouse.x;
+	player1.y = mouse.y;
+	player1.update();
+
+	enemies.forEach(function (enemy) {
+		enemy.update(enemies);
+	});
 }
 
 init();
