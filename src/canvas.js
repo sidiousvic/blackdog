@@ -11,6 +11,9 @@ const mouse = {
     y: innerHeight / 2
 }
 
+const randomX = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
+const randomY = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
+
 const colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66']
 
 // Event Listeners
@@ -40,7 +43,15 @@ function randomIntFromRange(min, max) {
 }
 
 // Objects
-function Sprite(x, y, img, width, height) {
+function Player(x, y, img, width, height) {
+    this.x = x;
+    this.y = y;
+    this.img = img;
+    this.dWidth = width;
+    this.dHeight = height;
+}
+
+function Coin(x, y, img, width, height) {
     this.x = x;
     this.y = y;
     this.img = img;
@@ -64,8 +75,8 @@ function Enemy(x, y, img, width, height) {
 	    
 	    for (let i = 0; i < enemies.length; i++) {
 		    if (this === enemies[i]) continue;
-		    if (Distance(this.x, this.y, enemies[i].x, enemies[i].y) - 25 < 0) {
-			    			 //THIS NUMBER DETERMINES BOUNCE DISTANCE ^^^
+		    if (Distance(this.x, this.y, enemies[i].x, enemies[i].y) - 50 < 0) {
+			    											 //HITBOX ^^^
 			    this.velocity.x = -this.velocity.x; 
 			    this.velocity.y = -this.velocity.y;
 		    }
@@ -104,28 +115,39 @@ Object.prototype.update = function() {
 // Implementation
 let player1;
 let enemies;
+let coin;
 function init() {
 	enemies = [];
-	player1 = new Sprite(undefined, undefined, document.getElementById("blackdog"), 50, 50);
 	
-	for (let i = 0; i < 80; i++) {
-		let x = randomIntFromRange(canvas.width - canvas.width, canvas.width);
-		let y = randomIntFromRange(canvas.height - canvas.height, canvas.height);
+	player1 = new Player(undefined, undefined, document.getElementById("blackdog"), 50, 50);
+	
+	
+	let x = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
+    let y = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
+	coin = new Coin(x, y, document.getElementById("coin"), 50, 50)
+
+	const radius = 50;
+	for (let i = 0; i < 3; i++) {
+		let x = randomIntFromRange(radius, window.innerWidth - radius);
+		let y = randomIntFromRange(radius, window.innerHeight - radius);
 		
 		if (i !== 0) {
 			for (let j = 0; j < enemies.length; j++) {
-				if (Distance(x, y, enemies[j].x, enemies[j].y) - 25 < 0) {
-						//THIS NUMBER DETERMINES BOUNCE DISTANCE ^^^
-					x = randomIntFromRange(canvas.width - canvas.width, canvas.width);
-					y = randomIntFromRange(canvas.height - canvas.height, canvas.height);
+				if (Distance(x, y, enemies[j].x, enemies[j].y) - 50 < 0) {
+														//HITBOX ^^^
+						x = randomIntFromRange(radius, window.innerWidth - radius);
+						y = randomIntFromRange(radius, window.innerHeight - radius);
 					
 					j = -1;
 				}
 			}
 		}
 		
+		
 		enemies.push(new Enemy(x, y, document.getElementById("enemy"), 50, 50));
+		
 	}
+	
 
 }
 
@@ -143,6 +165,31 @@ function animate() {
 	enemies.forEach(enemy => {
 		enemy.update(enemies);
 	});
+	
+	if (Distance(player1.x, player1.y, coin.x, coin.y) < 25) {
+		let x = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
+		let y = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
+		coin.x = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
+		coin.y = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
+		
+			const radius = 50;
+			for (let j = 0; j < enemies.length; j++) {
+				if (Distance(x, y, enemies[j].x, enemies[j].y) - 50 < 0) {
+														//HITBOX ^^^
+						x = randomIntFromRange(radius, window.innerWidth - radius);
+						y = randomIntFromRange(radius, window.innerHeight - radius);
+					
+					j = -1;
+				}
+			}
+		
+		
+		enemies.push(new Enemy(x, y, document.getElementById("enemy"), 50, 50));
+		
+	}
+	
+	coin.update();
+	console.log(Distance(player1.x, player1.y, coin.x, coin.y));
 
 }
 

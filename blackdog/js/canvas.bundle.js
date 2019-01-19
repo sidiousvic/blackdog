@@ -113,6 +113,9 @@ var mouse = {
 	y: innerHeight / 2
 };
 
+var randomX = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
+var randomY = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
+
 var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66'];
 
 // Event Listeners
@@ -142,7 +145,15 @@ function randomIntFromRange(min, max) {
 }
 
 // Objects
-function Sprite(x, y, img, width, height) {
+function Player(x, y, img, width, height) {
+	this.x = x;
+	this.y = y;
+	this.img = img;
+	this.dWidth = width;
+	this.dHeight = height;
+}
+
+function Coin(x, y, img, width, height) {
 	this.x = x;
 	this.y = y;
 	this.img = img;
@@ -168,8 +179,8 @@ function Enemy(x, y, img, width, height) {
 
 		for (var i = 0; i < enemies.length; i++) {
 			if (_this === enemies[i]) continue;
-			if (Distance(_this.x, _this.y, enemies[i].x, enemies[i].y) - 25 < 0) {
-				//THIS NUMBER DETERMINES BOUNCE DISTANCE ^^^
+			if (Distance(_this.x, _this.y, enemies[i].x, enemies[i].y) - 50 < 0) {
+				//HITBOX ^^^
 				_this.velocity.x = -_this.velocity.x;
 				_this.velocity.y = -_this.velocity.y;
 			}
@@ -203,27 +214,34 @@ Object.prototype.update = function () {
 // Implementation
 var player1 = void 0;
 var enemies = void 0;
+var coin = void 0;
 function init() {
 	enemies = [];
-	player1 = new Sprite(undefined, undefined, document.getElementById("blackdog"), 50, 50);
 
-	for (var i = 0; i < 80; i++) {
-		var x = randomIntFromRange(canvas.width - canvas.width, canvas.width);
-		var y = randomIntFromRange(canvas.height - canvas.height, canvas.height);
+	player1 = new Player(undefined, undefined, document.getElementById("blackdog"), 50, 50);
+
+	var x = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
+	var y = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
+	coin = new Coin(x, y, document.getElementById("coin"), 50, 50);
+
+	var radius = 50;
+	for (var i = 0; i < 3; i++) {
+		var _x = randomIntFromRange(radius, window.innerWidth - radius);
+		var _y = randomIntFromRange(radius, window.innerHeight - radius);
 
 		if (i !== 0) {
 			for (var j = 0; j < enemies.length; j++) {
-				if (Distance(x, y, enemies[j].x, enemies[j].y) - 25 < 0) {
-					//THIS NUMBER DETERMINES BOUNCE DISTANCE ^^^
-					x = randomIntFromRange(canvas.width - canvas.width, canvas.width);
-					y = randomIntFromRange(canvas.height - canvas.height, canvas.height);
+				if (Distance(_x, _y, enemies[j].x, enemies[j].y) - 50 < 0) {
+					//HITBOX ^^^
+					_x = randomIntFromRange(radius, window.innerWidth - radius);
+					_y = randomIntFromRange(radius, window.innerHeight - radius);
 
 					j = -1;
 				}
 			}
 		}
 
-		enemies.push(new Enemy(x, y, document.getElementById("enemy"), 50, 50));
+		enemies.push(new Enemy(_x, _y, document.getElementById("enemy"), 50, 50));
 	}
 }
 
@@ -239,6 +257,29 @@ function animate() {
 	enemies.forEach(function (enemy) {
 		enemy.update(enemies);
 	});
+
+	if (Distance(player1.x, player1.y, coin.x, coin.y) < 25) {
+		var x = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
+		var y = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
+		coin.x = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
+		coin.y = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
+
+		var radius = 50;
+		for (var j = 0; j < enemies.length; j++) {
+			if (Distance(x, y, enemies[j].x, enemies[j].y) - 50 < 0) {
+				//HITBOX ^^^
+				x = randomIntFromRange(radius, window.innerWidth - radius);
+				y = randomIntFromRange(radius, window.innerHeight - radius);
+
+				j = -1;
+			}
+		}
+
+		enemies.push(new Enemy(x, y, document.getElementById("enemy"), 50, 50));
+	}
+
+	coin.update();
+	console.log(Distance(player1.x, player1.y, coin.x, coin.y));
 }
 
 init();
