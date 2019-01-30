@@ -7,25 +7,56 @@
 	<meta property="og:type"               content="website" />
 	<meta property="og:title"              content="BLACK DOG" />
 	<meta property="og:description"        content="Defense game by VIC SIDIOUS" />
-	<meta property="og:image"              content="../../images/#" />
+	<meta property="og:image"              content="images/blackdog.gif" />
     <style>
+
+@font-face {
+    font-family: 'The Legend of Zelda NES';
+    src: url('The-Legend-of-Zelda-NES.woff2') format('woff2'),
+        url('The-Legend-of-Zelda-NES.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
         body {
             margin: 0;
             background-color: red;
             cursor: none;
+            position: fixed;
         }
         
         img {
 	        mix-blend-mode: exclusion;
         }
+
+        #enemy {
+            mix-blend-mode: difference;
+            filter: invert(100%);
+        }
+
+        p {
+            color: black;
+            font-size: 40;
+            font-family: The Legend of Zelda NES;
+        }
+
+        #score {
+            margin: 30px;
+        }
     </style>
 </head>
 <body>
+        <p id="score"></p>
+
+        
     <canvas>
         <img id="blackdog" width="0" height="0" src="images/blackdog.gif">
         <img id="enemy" width="0" height="0" src="images/enemy.gif">
-        <img id="coin" width="0" height="0" src="images/bone.gif">
+        <img id="coin" width="0" height="0" src="images/coin.gif">
+        <h1 id="score"><h1>
     </canvas>
 
 <script type="text/javascript" src="./js/canvas.js"></script></body>
+
+
 </html>

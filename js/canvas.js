@@ -1,104 +1,4 @@
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// define __esModule on exports
-/******/ 	__webpack_require__.r = function(exports) {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__webpack_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = __webpack_require__(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
-/******/ 		var ns = Object.create(null);
-/******/ 		__webpack_require__.r(ns);
-/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
-/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
-/******/ 		return ns;
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./src/canvas.js");
-/******/ })
-/************************************************************************/
-/******/ ({
-
-/***/ "./src/canvas.js":
-/*!***********************!*\
-  !*** ./src/canvas.js ***!
-  \***********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
 "use strict";
-
-
-var _utils = __webpack_require__(/*! ./utils */ "./src/utils.js");
-
-var _utils2 = _interopRequireDefault(_utils);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -117,6 +17,8 @@ var randomX = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, win
 var randomY = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
 
 var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66'];
+
+var score = 0;
 
 // Event Listeners
 addEventListener('mousemove', function (event) {
@@ -170,8 +72,8 @@ function Enemy(x, y, img, width, height) {
 	this.dWidth = width;
 	this.dHeight = height;
 	this.velocity = {
-		x: Math.random() - 0.5,
-		y: Math.random() - 0.5
+		x: Math.random() - 3,
+		y: Math.random() - 3
 	};
 
 	this.update = function (enemies) {
@@ -184,7 +86,20 @@ function Enemy(x, y, img, width, height) {
 				_this.velocity.x = -_this.velocity.x;
 				_this.velocity.y = -_this.velocity.y;
 			}
+
+			if (Distance(player1.x, player1.y, enemies[i].x, enemies[i].y) - 20 < 0) {
+				//HITBOX ^^^
+				enemies.length = 0;
+				score = 0;
+			}
 		}
+
+		if (enemies.length > 30) {
+			enemies.length = 0;
+			score = 0;
+
+		}
+
 
 		if (_this.x <= 0 || _this.x >= innerWidth) {
 			_this.velocity.x = -_this.velocity.x;
@@ -276,26 +191,18 @@ function animate() {
 		}
 
 		enemies.push(new Enemy(x, y, document.getElementById("enemy"), 50, 50));
+		score++;
+		console.log(score);
 	}
 
 	coin.update();
-	console.log(Distance(player1.x, player1.y, coin.x, coin.y));
+	document.getElementById("score").innerHTML = String(score);
+	// console.log(Distance(player1.x, player1.y, enemy.x, enemy.y));
+
 }
 
 init();
 animate();
-
-/***/ }),
-
-/***/ "./src/utils.js":
-/*!**********************!*\
-  !*** ./src/utils.js ***!
-  \**********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
 
 function randomIntFromRange(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
@@ -311,10 +218,3 @@ function distance(x1, y1, x2, y2) {
 
     return Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
 }
-
-module.exports = { randomIntFromRange: randomIntFromRange, randomColor: randomColor, distance: distance };
-
-/***/ })
-
-/******/ });
-//# sourceMappingURL=canvas.bundle.js.map
