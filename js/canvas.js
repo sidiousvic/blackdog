@@ -13,9 +13,6 @@ var mouse = {
 	y: innerHeight / 2
 };
 
-var randomX = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
-var randomY = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
-
 var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66'];
 
 var score = 0;
@@ -25,6 +22,11 @@ addEventListener('mousemove', function (event) {
 	mouse.x = event.clientX;
 	mouse.y = event.clientY;
 });
+
+// addEventListener('touchmove', function (event) {
+// 	mouse.x = event.clientX;
+// 	mouse.y = event.clientY;
+// });
 
 addEventListener('resize', function () {
 	canvas.width = innerWidth;
@@ -81,28 +83,35 @@ function Enemy(x, y, img, width, height) {
 
 		for (var i = 0; i < enemies.length; i++) {
 			if (_this === enemies[i]) continue;
-			if (Distance(_this.x, _this.y, enemies[i].x, enemies[i].y) - 50 < 0) {
+			if (Distance(_this.x, _this.y, enemies[i].x, enemies[i].y) - 20 < 0) {
 				//HITBOX ^^^
 				_this.velocity.x = -_this.velocity.x;
 				_this.velocity.y = -_this.velocity.y;
+				_this.img = document.getElementById("enemyR");
 			}
 
 			if (Distance(player1.x, player1.y, enemies[i].x, enemies[i].y) - 20 < 0) {
 				//HITBOX ^^^
 				enemies.length = 0;
+				document.getElementById("score").innerHTML = String(score - 1) + " MONEYS";
 				score = 0;
+				coin.x = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
+				coin.y = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
 			}
+
 		}
 
-		if (enemies.length > 30) {
+		//MAX NUMBER OF ENEMIES BEFORE WIN
+		if (enemies.length > 99) {
 			enemies.length = 0;
+			document.getElementById("score").innerHTML = "GHOSTIES DEFEATED. GOOD JOB BUCKO.";
 			score = 0;
-
 		}
 
 
 		if (_this.x <= 0 || _this.x >= innerWidth) {
 			_this.velocity.x = -_this.velocity.x;
+			_this.img = document.getElementById("enemyR");
 		}
 
 		if (_this.y <= 0 || _this.y >= innerHeight) {
@@ -133,11 +142,11 @@ var coin = void 0;
 function init() {
 	enemies = [];
 
-	player1 = new Player(undefined, undefined, document.getElementById("blackdog"), 50, 50);
+	player1 = new Player(mouse.x, mouse.y, document.getElementById("blackdog"), 50, 50);
 
-	var x = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
-	var y = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
-	coin = new Coin(x, y, document.getElementById("coin"), 50, 50);
+	var Cx = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
+	var Cy = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
+	coin = new Coin(Cx, Cy, document.getElementById("coin"), 50, 50);
 
 	var radius = 50;
 	for (var i = 0; i < 3; i++) {
@@ -156,7 +165,7 @@ function init() {
 			}
 		}
 
-		enemies.push(new Enemy(_x, _y, document.getElementById("enemy"), 50, 50));
+		enemies.push(new Enemy(_x, _y, document.getElementById("enemy"), 30, 30));
 	}
 }
 
@@ -190,19 +199,20 @@ function animate() {
 			}
 		}
 
-		enemies.push(new Enemy(x, y, document.getElementById("enemy"), 50, 50));
+		enemies.push(new Enemy(x, y, document.getElementById("enemy"), 30, 30));
+		document.getElementById("score").innerHTML = String(score);
 		score++;
-		console.log(score);
 	}
 
-	coin.update();
-	document.getElementById("score").innerHTML = String(score);
-	// console.log(Distance(player1.x, player1.y, enemy.x, enemy.y));
+	coin.update();}
 
-}
+
 
 init();
-animate();
+animate(); 	
+
+
+
 
 function randomIntFromRange(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
