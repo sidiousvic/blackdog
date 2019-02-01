@@ -87,7 +87,11 @@ function Enemy(x, y, img, width, height) {
 				//HITBOX ^^^
 				_this.velocity.x = -_this.velocity.x;
 				_this.velocity.y = -_this.velocity.y;
-				_this.img = document.getElementById("enemyR");
+				if (_this.img === document.getElementById("enemy")) {
+					_this.img = document.getElementById("enemyR");
+					} else {
+						_this.img = document.getElementById("enemy");
+					}
 			}
 
 			if (Distance(player1.x, player1.y, enemies[i].x, enemies[i].y) - 20 < 0) {
@@ -104,14 +108,18 @@ function Enemy(x, y, img, width, height) {
 		//MAX NUMBER OF ENEMIES BEFORE WIN
 		if (enemies.length > 99) {
 			enemies.length = 0;
-			document.getElementById("score").innerHTML = "GHOSTIES DEFEATED. GOOD JOB BUCKO.";
+			document.getElementById("score").innerHTML = "NO MORE GHOSTIES. GOOD JOB BUCKO.";
 			score = 0;
 		}
 
 
 		if (_this.x <= 0 || _this.x >= innerWidth) {
 			_this.velocity.x = -_this.velocity.x;
+			if (_this.img === document.getElementById("enemy")) {
 			_this.img = document.getElementById("enemyR");
+			} else {
+				_this.img = document.getElementById("enemy");
+			}
 		}
 
 		if (_this.y <= 0 || _this.y >= innerHeight) {
