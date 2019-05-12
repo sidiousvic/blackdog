@@ -1,2 +1,2 @@
 # blackdog
-A basic Canvas + HTML5 game in pure JS.
+A basic HTML5 Canvas game in JS.
