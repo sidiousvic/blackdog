@@ -1,238 +1,267 @@
-"use strict";
+// assign canvas to variable and get gontext
+const canvas = document.querySelector("canvas");
+const c = canvas.getContext("2d");
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var canvas = document.querySelector('canvas');
-var c = canvas.getContext('2d');
-
+// define canvas size
 canvas.width = innerWidth;
 canvas.height = innerHeight;
 
-var mouse = {
-	x: innerWidth / 2,
-	y: innerHeight / 2
+// create mouse object
+let mouse = {
+  x: innerWidth / 2,
+  y: innerHeight / 2
 };
 
-var colors = ['#2185C5', '#7ECEFD', '#FFF6E5', '#FF7F66'];
+// create score variable
+let score = 0;
 
-var score = 0;
-
-// Event Listeners
-addEventListener('mousemove', function (event) {
-	mouse.x = event.clientX;
-	mouse.y = event.clientY;
+//// EVENT LISTENERS
+// map mouse movement to mouse object
+addEventListener("mousemove", function(e) {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
 });
 
-// addEventListener('touchmove', function (event) {
-// 	mouse.x = event.clientX;
-// 	mouse.y = event.clientY;
-// });
-
-addEventListener('resize', function () {
-	canvas.width = innerWidth;
-	canvas.height = innerHeight;
-
-	init();
+// resize canvas on window resize
+addEventListener("resize", function() {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+  // reset the game on resize
+  init();
 });
 
-//Utility Functions
-
-function Distance(x1, y1, x2, y2) {
-	var xDistance = x2 - x1;
-	var yDistance = y2 - y1;
-
-	return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+//// UTILITY FUNCTIONS
+// calculate distance
+function distance(x1, y1, x2, y2) {
+  let xDistance = x2 - x1;
+  let yDistance = y2 - y1;
+  return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
 }
 
+// get random integer from min max range
 function randomIntFromRange(min, max) {
-	return Math.floor(Math.random() * (max - min + 1) + min);
+  return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-// Objects
+//// OBJECT PROTOTYPE METHODS
+// draw image canvas 2D API
+Object.prototype.draw = function() {
+  c.drawImage(this.img, this.x, this.y, this.width, this.height);
+};
+
+// update the drawing
+Object.prototype.update = function() {
+  this.draw();
+};
+
+//// GAME OBJECTS
 function Player(x, y, img, width, height) {
-	this.x = x;
-	this.y = y;
-	this.img = img;
-	this.dWidth = width;
-	this.dHeight = height;
+  this.x = x;
+  this.y = y;
+  this.img = img;
+  this.width = width;
+  this.height = height;
+
+  // this.update = function() {};
 }
 
 function Coin(x, y, img, width, height) {
-	this.x = x;
-	this.y = y;
-	this.img = img;
-	this.dWidth = width;
-	this.dHeight = height;
+  this.x = x;
+  this.y = y;
+  this.img = img;
+  this.width = width;
+  this.height = height;
 }
 
 function Enemy(x, y, img, width, height) {
-	var _this = this;
+  // assign this to a variable to always refer to this object
+  // through closure regardless of execution context
+  let _this = this;
 
-	this.x = x;
-	this.y = y;
-	this.img = img;
-	this.dWidth = width;
-	this.dHeight = height;
-	this.velocity = {
-		x: Math.random() - 3,
-		y: Math.random() - 3
-	};
+  this.x = x;
+  this.y = y;
+  this.img = img;
+  this.width = width;
+  this.height = height;
+  this.velocity = {
+    x: 2,
+    y: 2
+  };
 
-	this.update = function (enemies) {
-		_this.draw();
+  this.update = function(enemies) {
+    _this.draw();
 
-		for (var i = 0; i < enemies.length; i++) {
-			if (_this === enemies[i]) continue;
-			if (Distance(_this.x, _this.y, enemies[i].x, enemies[i].y) - 20 < 0) {
-				//HITBOX ^^^
-				_this.velocity.x = -_this.velocity.x;
-				_this.velocity.y = -_this.velocity.y;
-				if (_this.img === document.getElementById("enemy")) {
-					_this.img = document.getElementById("enemyR");
-					} else {
-						_this.img = document.getElementById("enemy");
-					}
-			}
+    for (let i = 0; i < enemies.length; i++) {
+      if (_this === enemies[i]) continue;
+      if (distance(_this.x, _this.y, enemies[i].x, enemies[i].y) - 20 < 0) {
+        // HITBOX ^^^
+        _this.velocity.x = -_this.velocity.x;
+        _this.velocity.y = -_this.velocity.y;
+        if (_this.img === document.getElementById("enemy")) {
+          _this.img = document.getElementById("enemyR");
+        } else {
+          _this.img = document.getElementById("enemy");
+        }
+      }
 
-			if (Distance(player1.x, player1.y, enemies[i].x, enemies[i].y) - 20 < 0) {
-				//HITBOX ^^^
-				enemies.length = 0;
-				document.getElementById("score").innerHTML = String(score - 1) + " MONEYS";
-				score = 0;
-				coin.x = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
-				coin.y = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
-			}
+      // collision event
+      if (distance(player.x, player.y, enemies[i].x, enemies[i].y) - 20 < 0) {
+        enemies.length = 0; // hitbox ^^^
 
-		}
+        // update score
+        document.getElementById("score").innerHTML =
+          String(score - 1) + " POINTS";
+        score = 0;
 
-		//MAX NUMBER OF ENEMIES BEFORE WIN
-		if (enemies.length > 99) {
-			enemies.length = 0;
-			document.getElementById("score").innerHTML = "NO MORE GHOSTIES. GOOD JOB BUCKO.";
-			score = 0;
-		}
+        // relocate coin
+        coin.x = randomIntFromRange(
+          window.innerWidth + 50 - window.innerWidth,
+          window.innerWidth - 50
+        );
+        coin.y = randomIntFromRange(
+          window.innerHeight + 50 - window.innerHeight,
+          window.innerHeight - 50
+        );
+      }
+    }
 
+    // max number of enemies to win
+    if (enemies.length > 99) {
+      enemies.length = 0;
+      document.getElementById("score").innerHTML = "INSERT WIN MESSAGE HERE";
+      score = 0;
+    }
 
-		if (_this.x <= 0 || _this.x >= innerWidth) {
-			_this.velocity.x = -_this.velocity.x;
-			if (_this.img === document.getElementById("enemy")) {
-			_this.img = document.getElementById("enemyR");
-			} else {
-				_this.img = document.getElementById("enemy");
-			}
-		}
+    // bounce enemy off walls
+    if (_this.x <= 0 || _this.x >= innerWidth) {
+      _this.velocity.x = -_this.velocity.x;
+      if (_this.img === document.getElementById("enemy")) {
+        _this.img = document.getElementById("enemyR");
+      } else {
+        _this.img = document.getElementById("enemy");
+      }
+    }
 
-		if (_this.y <= 0 || _this.y >= innerHeight) {
-			_this.velocity.y = -_this.velocity.y;
-		}
+    if (_this.y <= 0 || _this.y >= innerHeight) {
+      _this.velocity.y = -_this.velocity.y;
+    }
 
-		_this.x += _this.velocity.x;
-		_this.y += _this.velocity.y;
-	};
+    // move the enemy
+    _this.x += _this.velocity.x;
+    _this.y += _this.velocity.y;
+  };
 }
-
-Object.prototype.draw = function () {
-	c.beginPath();
-	c.drawImage(this.img, this.x, this.y, this.dWidth, this.dHeight);
-	c.fillStyle = this.color;
-	c.fill();
-	c.closePath();
-};
-
-Object.prototype.update = function () {
-	this.draw();
-};
 
 // Implementation
-var player1 = void 0;
-var enemies = void 0;
-var coin = void 0;
+let player;
+let enemies;
+let coin;
+
 function init() {
-	enemies = [];
+  // create enemies array
+  enemies = [];
 
-	player1 = new Player(mouse.x, mouse.y, document.getElementById("blackdog"), 50, 50);
+  // instantiate player
+  player = new Player(
+    mouse.x,
+    mouse.y,
+    document.getElementById("blackdog"),
+    50,
+    50
+  );
 
-	var Cx = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
-	var Cy = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
-	coin = new Coin(Cx, Cy, document.getElementById("coin"), 50, 50);
+  // init coin xy coordinates within canvas boundaries
+  let sx = randomIntFromRange(
+    window.innerWidth + 50 - window.innerWidth,
+    window.innerWidth - 50
+  );
+  let sy = randomIntFromRange(
+    window.innerHeight + 50 - window.innerHeight,
+    window.innerHeight - 50
+  );
 
-	var radius = 50;
-	for (var i = 0; i < 3; i++) {
-		var _x = randomIntFromRange(radius, window.innerWidth - radius);
-		var _y = randomIntFromRange(radius, window.innerHeight - radius);
+  // instantiate coin
+  coin = new Coin(sx, sy, document.getElementById("coin"), 50, 50);
 
-		if (i !== 0) {
-			for (var j = 0; j < enemies.length; j++) {
-				if (Distance(_x, _y, enemies[j].x, enemies[j].y) - 50 < 0) {
-					//HITBOX ^^^
-					_x = randomIntFromRange(radius, window.innerWidth - radius);
-					_y = randomIntFromRange(radius, window.innerHeight - radius);
+  // push initial enemies
+  for (var i = 0; i < 3; i++) {
+    // number of enemies^^^
 
-					j = -1;
-				}
-			}
-		}
+    // avoid collision with player on init
+    let radius = 50;
+    let _x = randomIntFromRange(radius, window.innerWidth - radius);
+    let _y = randomIntFromRange(radius, window.innerHeight - radius);
 
-		enemies.push(new Enemy(_x, _y, document.getElementById("enemy"), 30, 30));
-	}
+    if (i !== 0) {
+      for (var j = 0; j < enemies.length; j++) {
+        if (distance(_x, _y, enemies[j].x, enemies[j].y) - 50 < 0) {
+          // hitbox ^^^
+          _x = randomIntFromRange(radius, window.innerWidth - radius);
+          _y = randomIntFromRange(radius, window.innerHeight - radius);
+
+          j = -1;
+        }
+      }
+    }
+    // push initial enemies
+    enemies.push(new Enemy(_x, _y, document.getElementById("enemy"), 30, 30));
+  }
 }
 
-// Animation Loop
+//// ANIMATION LOOP
 function animate() {
-	requestAnimationFrame(animate);
-	c.clearRect(0, 0, canvas.width, canvas.height);
+  requestAnimationFrame(animate);
+  // clear canvas on new frame
+  c.clearRect(0, 0, canvas.width, canvas.height);
 
-	player1.x = mouse.x;
-	player1.y = mouse.y;
-	player1.update();
+  // map player to mouse and update/draw on new frame
+  player.x = mouse.x;
+  player.y = mouse.y;
+  player.update();
 
-	enemies.forEach(function (enemy) {
-		enemy.update(enemies);
-	});
+  // update every enemy in enemies array on new frame
+  enemies.forEach(function(enemy) {
+    enemy.update(enemies);
+  });
 
-	if (Distance(player1.x, player1.y, coin.x, coin.y) < 25) {
-		var x = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
-		var y = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
-		coin.x = randomIntFromRange(window.innerWidth + 50 - window.innerWidth, window.innerWidth - 50);
-		coin.y = randomIntFromRange(window.innerHeight + 50 - window.innerHeight, window.innerHeight - 50);
+  // listen for collision with coin and avoid collision on new frame
+  if (distance(player.x, player.y, coin.x, coin.y) < 25) {
+    var x = randomIntFromRange(
+      window.innerWidth + 50 - window.innerWidth,
+      window.innerWidth - 50
+    );
+    var y = randomIntFromRange(
+      window.innerHeight + 50 - window.innerHeight,
+      window.innerHeight - 50
+    );
+    coin.x = randomIntFromRange(
+      window.innerWidth + 50 - window.innerWidth,
+      window.innerWidth - 50
+    );
+    coin.y = randomIntFromRange(
+      window.innerHeight + 50 - window.innerHeight,
+      window.innerHeight - 50
+    );
 
-		var radius = 50;
-		for (var j = 0; j < enemies.length; j++) {
-			if (Distance(x, y, enemies[j].x, enemies[j].y) - 50 < 0) {
-				//HITBOX ^^^
-				x = randomIntFromRange(radius, window.innerWidth - radius);
-				y = randomIntFromRange(radius, window.innerHeight - radius);
+    var radius = 50;
+    for (var j = 0; j < enemies.length; j++) {
+      if (distance(x, y, enemies[j].x, enemies[j].y) - 50 < 0) {
+        //hitbox ^^^
+        x = randomIntFromRange(radius, window.innerWidth - radius);
+        y = randomIntFromRange(radius, window.innerHeight - radius);
 
-				j = -1;
-			}
-		}
+        j = -1;
+      }
+    }
 
-		enemies.push(new Enemy(x, y, document.getElementById("enemy"), 30, 30));
-		document.getElementById("score").innerHTML = String(score);
-		score++;
-	}
+    enemies.push(new Enemy(x, y, document.getElementById("enemy"), 30, 30));
+    document.getElementById("score").innerHTML = String(score);
+    score++;
+  }
 
-	coin.update();}
-
-
+  coin.update();
+  // console.log(`x: ${mouse.x} y: ${mouse.y}`);
+}
 
 init();
-animate(); 	
-
-
-
-
-function randomIntFromRange(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-function randomColor(colors) {
-    return colors[Math.floor(Math.random() * colors.length)];
-}
-
-function distance(x1, y1, x2, y2) {
-    var xDist = x2 - x1;
-    var yDist = y2 - y1;
-
-    return Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
-}
+animate();
