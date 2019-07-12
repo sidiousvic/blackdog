@@ -8,51 +8,7 @@
 	<meta property="og:title"              content="BLACK DOG" />
 	<meta property="og:description"        content="A basic Canvas + HTML5 game by VIC SIDIOUS" />
 	<meta property="og:image"              content="images/blackdog.gif" />
-    <style>
-
-@font-face {
-    font-family: 'The Legend of Zelda NES';
-    src: url('The-Legend-of-Zelda-NES.woff2') format('woff2'),
-        url('The-Legend-of-Zelda-NES.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
-        canvas {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        }
-        * {
-            cursor: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7), auto;  
-        }
-        body {
-            margin: 0;
-            background-color: red;
-            cursor: none;
-            position: fixed;
-        }
-        
-        img {
-	        mix-blend-mode: exclusion;
-        }
-
-        #enemy {
-            mix-blend-mode: difference;
-            filter: invert(100%);
-        }
-
-        p {
-            color: black;
-            font-size: 40;
-            font-family: The Legend of Zelda NES;
-            width: 500px;
-        }
-
-        #score {
-            margin: 30px;
-            position: absolute;
-        }
-    </style>
+    <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
         <p id="score">BLACK DOG</p>
