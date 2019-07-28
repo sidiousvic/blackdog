@@ -84,8 +84,8 @@ function Enemy(x, y, img, width, height) {
   this.width = width;
   this.height = height;
   this.velocity = {
-    x: 2,
-    y: 2
+    x: -2,
+    y: -2
   };
 
   this.update = function(enemies) {
