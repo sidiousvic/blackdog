@@ -1,2 +1,5 @@
 # blackdog
-A basic HTML5 Canvas game in JS.
+
+A greedy dog game. 🐕
+
+@sidiousvic
