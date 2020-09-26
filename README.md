@@ -1,5 +1,5 @@
 # blackdog
 
-A greedy dog game. 🐕
+<img src="./images/blackdogR.gif">
 
 @sidiousvic
