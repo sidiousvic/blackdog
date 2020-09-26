@@ -1,5 +1,5 @@
 # blackdog
 
-<a href="https://www.sidiousvic.github.io/blackdog/"><img src="./images/blackdogR.gif">
+<a href="sidiousvic.github.io/blackdog/"><img src="./images/blackdogR.gif">
 
-@sidiousvic
+@sidiousvic</a>
