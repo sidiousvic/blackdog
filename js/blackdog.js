@@ -3,7 +3,10 @@
  * utilities
  *
  */
+
 const compose = (...fns) => (x) => fns.reduceRight((v, f) => f(v), x);
+
+const debug = console.log;
 
 /**
  * @function distance
@@ -22,82 +25,93 @@ const avg = (x) => (y) => x + y / 2;
 
 const divideByTwo = (n) => n / 2;
 
+const collide = (a) => (b) => (f) => {
+  const hitboxA = divideByTwo(a.dimension);
+  const hitboxB = divideByTwo(b.dimension);
+  const distanceAToB = distance(a)(b);
+  distanceAToB <= hitboxA + hitboxB && f();
+};
+
+const move = (o) => ((o.x += o.velocity.x), (o.y += o.velocity.y));
+
+const utils = {
+  distance,
+  randomIntFromRange,
+  negation,
+  avg,
+  divideByTwo,
+  collide,
+  move,
+};
+
 /*
  *
  * objects
  *
  */
-const Player = (x) => (y) => (dimension) => ({
+const Player = (x) => (y) => (dimension) => (sprite) => ({
   x,
   y,
-  sprite: document.getElementById("blackdog"),
+  sprite,
   dimension,
-  moveWithMouse(mouse) {
-    const player = this;
+  moveWithMouse({ player, mouse }) {
     player.x = mouse.x;
     player.y = mouse.y;
-    return player;
   },
-  draw(s) {
-    const { player, coin, score, mouse, collide, c } = s;
-
+  draw({ player, coin, score, collide, c }) {
     /**@mechanic move player with mouse*/
-    player.moveWithMouse(mouse);
+    player.moveWithMouse(z);
 
     /**@mechanic increase score when colliding with coin */
-    collide(player)(coin)(() => score.up());
+    collide(player)(coin)(() => score.up(z));
 
     c.draw(player);
   },
 });
 
-const Coin = (x) => (y) => (dimension) => ({
+const Coin = (x) => (y) => (dimension) => (sprite) => ({
   x,
   y,
-  sprite: document.getElementById("coin"),
+  sprite,
   dimension,
-  respawn() {
-    const coin = this;
-    const randomCoinX = randomIntFromRange(50)(innerWidth - 50);
-    const randomCoinY = randomIntFromRange(50)(innerHeight - 50);
-    coin.x = randomCoinX;
-    coin.y = randomCoinY;
+  respawn({ coin, randomIntFromRange }) {
+    coin.x = randomIntFromRange(50)(innerWidth - 50);
+    coin.y = randomIntFromRange(50)(innerHeight - 50);
   },
-  draw(s) {
-    const { coin, player, sound, enemies, collide, c } = s;
-
+  draw({ coin, player, sound, enemies, collide, c }) {
     /**@mechanic play coin sound when colliding with player */
     /**@mechanic respawn coin when colliding with player */
     /**@mechanic spawn new enemy when colliding with player */
     collide(coin)(player)(() => {
       sound.coin.play();
-      coin.respawn();
-      enemies.spawn();
+      coin.respawn(z);
+      enemies.spawn(z);
     });
 
     c.draw(coin);
   },
 });
 
-const Enemy = (x) => (y) => (dimension) => (speed) => ({
+const Enemy = (x) => (y) => (dimension) => ({ ...sprites }) => (speed) => ({
   x,
   y,
-  sprite: document.getElementById("enemy"),
-  spriteR: document.getElementById("enemyR"),
-  spriteL: document.getElementById("enemy"),
+  sprite: sprites.L,
+  spriteR: sprites.R,
+  spriteL: sprites.L,
   dimension,
   velocity: {
     x: speed,
     y: speed,
   },
-
-  draw(s) {
-    const { enemy, player, sound, over, collide, move, c } = s;
-
+  switchSprite({ enemy }) {
+    if (enemy.velocity.x < 0) enemy.sprite = enemy.spriteL;
+    else enemy.sprite = enemy.spriteR;
+  },
+  draw({ enemy, player, sound, over, collide, move, c }) {
     /**@mechanic game over when colliding with player */
     /**@mechanic play bark sound when colliding with player */
     collide(enemy)(player)(() => {
-      over(s);
+      over(z);
       sound.bark.play();
     });
 
@@ -131,58 +145,41 @@ const Enemy = (x) => (y) => (dimension) => (speed) => ({
     }
 
     /**@mechanic switch sprite l <--> r */
-    {
-      if (enemy.velocity.x < 0) enemy.sprite = enemy.spriteL;
-      else enemy.sprite = enemy.spriteR;
-    }
+    enemy.switchSprite(z);
 
     c.draw(enemy);
   },
 });
 
-const Score = (value) => ({
+const Score = (value) => (sprite) => ({
   value,
-  sprite: document.getElementById("score"),
-  up() {
-    const score = this,
-      enemyArea = 50 * 50,
+  sprite,
+  up({ score, enemy }) {
+    const enemyArea = Math.pow(enemy.dimension, 2),
       windowArea = innerHeight * innerWidth,
       enemyPercentage = enemyArea / windowArea;
     score.value += enemyPercentage * 1000;
     score.sprite.innerHTML = ~~score.value;
   },
-  reset() {
-    let score = this;
+  reset({ score }) {
     score.value = 0;
   },
 });
 
-const Sound = () => ({
-  coin: new Audio("../audio/coin.wav"),
-  bark: new Audio("../audio/bark.wav"),
-  sprite: document.getElementById("sound"),
-  mute() {
-    const sound = this;
+const Sound = ({ ...audios }) => (sprite) => ({
+  ...audios,
+  sprite,
+  mute({ sound }) {
     (sound.bark.muted = true), (sound.coin.muted = true);
   },
-  unmute() {
-    const sound = this;
+  unmute({ sound }) {
     (sound.bark.muted = false), (sound.coin.muted = false);
-  },
-  reset() {
-    let score = this;
-    score.value = 0;
   },
 });
 
 const Mouse = (c) => ({
   x: c.width / 2,
   y: c.width / 2,
-  xy({ clientX, clientY }) {
-    const mouse = this;
-    mouse.x = clientX;
-    mouse.y = clientY;
-  },
 });
 
 /*
@@ -190,88 +187,78 @@ const Mouse = (c) => ({
  * engine
  *
  */
-const game = (s) => {
-  const { player, coin, enemies, c } = s;
+const game = (z) => {
+  const { player, coin, enemies, c } = z;
 
-  requestAnimationFrame(() => game(s));
+  requestAnimationFrame(() => game(z));
   c.ctx.clearRect(0, 0, c.width, c.height);
 
-  player.draw(s);
-  coin.draw(s);
-  enemies.map((enemy) => ((s.enemy = enemy), enemy.draw(s)));
+  player.draw(z);
+  coin.draw(z);
+  enemies.map((enemy) => ((z.enemy = enemy), enemy.draw(z)));
 };
 
-const launch = () => {
-  /**@mechanic initialize canvas context*/
-  const c = document.querySelector("canvas");
+const canvas = (c) => (w) => (h) => {
   c.ctx = c.getContext("2d");
   c.draw = ({ sprite, x, y, dimension }) =>
     c.ctx.drawImage(sprite, x, y, dimension, dimension);
-  c.width = innerWidth;
-  c.height = innerHeight;
-  const canvasSize = () => {
-    (c.width = innerWidth), (c.height = innerHeight);
-  };
-  addEventListener("resize", canvasSize);
+  c.width = w;
+  c.height = h;
+  return c;
+};
 
-  /**@mechanic calculate mouse*/
+const launch = ({ canvas, Mouse, Score, Player, Coin, Enemy, Sound }) => {
+  /**@mechanic initialize canvas context*/
+  const canvasElement = document.querySelector("canvas");
+  const c = canvas(canvasElement)(innerWidth)(innerHeight);
+  const canvasSize = (c) => ((c.width = innerWidth), (c.height = innerHeight));
+
+  /**@mechanic create mouse*/
   const mouse = Mouse(c);
-  addEventListener("mousemove", ({ clientX, clientY }) =>
-    mouse.xy({ clientX, clientY })
-  );
 
   /**@mechanic create score*/
-  const score = Score(0);
+  const scoreSprite = document.getElementById("score");
+  const score = Score(0)(scoreSprite);
 
   /**@mechanic create player*/
-  const player = Player(mouse.x)(mouse.y)(50);
+  const playerSprite = document.getElementById("blackdog");
+  const player = Player(mouse.x)(mouse.y)(50)(playerSprite);
 
   /**@mechanic create coin*/
   const randomCoinX = randomIntFromRange(50)(innerWidth - 50);
   const randomCoinY = randomIntFromRange(50)(innerHeight - 50);
-  const coin = Coin(randomCoinX)(randomCoinY)(50);
+  const coinSprite = document.getElementById("coin");
+  const coin = Coin(randomCoinX)(randomCoinY)(50)(coinSprite);
 
   /**@mechanic create enemies */
   const enemies = [];
-  enemies.spawn = () => {
-    const randomX = randomIntFromRange(50)(innerWidth - 50);
-    const randomY = randomIntFromRange(50)(innerHeight - 50);
+  enemies.spawn = ({ enemies }) => {
+    const randomEnemyX = randomIntFromRange(50)(innerWidth - 50);
+    const randomEnemyY = randomIntFromRange(50)(innerHeight - 50);
     const randomSpeed = randomIntFromRange(-5)(4); // -5 -4 -3 -2 -1 0 1 2 3 4
-    const spawnedEnemy = Enemy(randomX)(randomY)(35)(
-      randomSpeed === 0 ? 5 : randomSpeed // -5 -4 -3 -2 -1 5 1 2 3 4
+    const randomSpeedNotZero = randomSpeed === 0 ? 5 : randomSpeed; // -5 -4 -3 -2 -1 5 1 2 3 4
+    const enemySprites = {
+      R: document.getElementById("enemyR"),
+      L: document.getElementById("enemy"),
+    };
+    const spawnedEnemy = Enemy(randomEnemyX)(randomEnemyY)(40)(enemySprites)(
+      randomSpeedNotZero
     );
     enemies.push(spawnedEnemy);
   };
-  enemies.spawn();
 
-  /**@mechanic initialize sounds */
-  const sound = Sound();
-  sound.bark.volume = 1;
-  sound.coin.volume = 0.07;
-  sound.mute();
-  addEventListener("click", () => {
-    if (sound.bark.muted) {
-      sound.sprite.src = "/images/soundon.png";
-      sound.unmute();
-      sound.bark.play();
-    } else {
-      sound.sprite.src = "/images/soundoff.png";
-      sound.mute();
-    }
-  });
-
-  /**@mechanic handle colissions */
-  const collide = (a) => (b) => (f) => {
-    const hitboxA = divideByTwo(a.dimension);
-    const distanceAToB = distance(a)(b);
-    distanceAToB <= hitboxA && f();
+  /**@mechanic create sound */
+  const audios = {
+    coin: new Audio("../audio/coin.wav"),
+    bark: new Audio("../audio/bark.wav"),
   };
-
-  /**@mechanic move object */
-  const move = (o) => ((o.x += o.velocity.x), (o.y += o.velocity.y));
+  audios.coin.volume = 0.07;
+  audios.bark.volume = 1;
+  const soundSprite = document.getElementById("sound");
+  const sound = Sound(audios)(soundSprite);
 
   /**@gamestate */
-  const s = {
+  const z = {
     c,
     player,
     coin,
@@ -282,15 +269,49 @@ const launch = () => {
     collide,
     move,
     over,
+    ...utils,
   };
-  return s;
+
+  /**@inits */
+  sound.mute(z);
+  enemies.spawn(z);
+
+  /**@sideffects */
+  addEventListener("resize", canvasSize);
+  addEventListener("mousemove", ({ clientX, clientY }) => {
+    mouse.x = clientX;
+    mouse.y = clientY;
+  });
+  addEventListener("click", () => {
+    if (sound.bark.muted) {
+      sound.sprite.src = "/images/soundon.png";
+      sound.unmute(z);
+      sound.bark.play();
+    } else {
+      sound.sprite.src = "/images/soundoff.png";
+      sound.mute(z);
+    }
+  });
+
+  return z;
 };
 
-const over = ({ coin, enemies, score }) => {
-  coin.respawn();
-  score.reset();
+const over = (z) => {
+  const { coin, score, enemies } = z;
+  coin.respawn(z);
+  score.reset(z);
   enemies.length = 0;
 };
 
-const s = launch();
-game(s);
+const z = launch({
+  canvas,
+  Mouse,
+  Score,
+  Player,
+  Coin,
+  Enemy,
+  Sound,
+  ...utils,
+});
+
+game(z);
