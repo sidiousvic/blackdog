@@ -1,6 +1,6 @@
 node_modules
 .ds_store
-.vscode/
+.vscode
 .cache
 dist
 blackdog.code-workspace
