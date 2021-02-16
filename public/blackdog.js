@@ -83,7 +83,7 @@ const Coin = (x) => (y) => (dimension) => (sprite) => ({
     /**@mechanic respawn coin when colliding with player */
     /**@mechanic spawn new enemy when colliding with player */
     collide(coin)(player)(() => {
-      sound.coin.play();
+      if (!sound.coin.muted) sound.coin.play();
       coin.respawn(z);
       enemies.spawn(z);
     });
@@ -112,7 +112,7 @@ const Enemy = (x) => (y) => (dimension) => ({ ...sprites }) => (speed) => ({
     /**@mechanic play bark sound when colliding with player */
     collide(enemy)(player)(() => {
       over(z);
-      sound.bark.play();
+      if (!sound.bark.muted) sound.bark.play();
     });
 
     /**@mechanic move enemy */
