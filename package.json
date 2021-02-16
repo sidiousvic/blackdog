@@ -5,7 +5,10 @@
   "repository": "https://github.com/sidiousvic/blackdog.git",
   "author": "sidiousvic <victor6rene@gmail.com>",
   "license": "MIT",
-"scripts": {
-  "start": "parcel index.html"
-}
+  "scripts": {
+    "start": "npx parcel index.html --port 9998"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }

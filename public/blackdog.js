@@ -187,10 +187,10 @@ const Mouse = (c) => ({
  * engine
  *
  */
-const game = (z) => {
+const Engine = (z) => {
   const { player, coin, enemies, c } = z;
 
-  requestAnimationFrame(() => game(z));
+  requestAnimationFrame(() => Engine(z));
   c.ctx.clearRect(0, 0, c.width, c.height);
 
   player.draw(z);
@@ -249,8 +249,8 @@ const launch = ({ canvas, Mouse, Score, Player, Coin, Enemy, Sound }) => {
 
   /**@mechanic create sound */
   const audios = {
-    coin: new Audio("../audio/coin.wav"),
-    bark: new Audio("../audio/bark.wav"),
+    coin: new Audio("./public/audio/coin.wav"),
+    bark: new Audio("./public/audio/bark.wav"),
   };
   audios.coin.volume = 0.07;
   audios.bark.volume = 1;
@@ -284,11 +284,11 @@ const launch = ({ canvas, Mouse, Score, Player, Coin, Enemy, Sound }) => {
   });
   addEventListener("click", () => {
     if (sound.bark.muted) {
-      sound.sprite.src = "/images/soundon.png";
+      sound.sprite.src = "./public/images/soundon.png";
       sound.unmute(z);
       sound.bark.play();
     } else {
-      sound.sprite.src = "/images/soundoff.png";
+      sound.sprite.src = "./public/images/soundoff.png";
       sound.mute(z);
     }
   });
@@ -314,4 +314,4 @@ const z = launch({
   ...utils,
 });
 
-game(z);
+Engine(z);
