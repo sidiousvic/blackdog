@@ -6,6 +6,7 @@ const project = "blackdog";
 const icon = "🐕";
 const port = 9998;
 const uri = "https://blackdog.sidious.pizza/github";
+const username = "sidiousvic";
 
 const execAsync = u.promisify(exec);
 const GitHubWebhook = express();
@@ -38,8 +39,9 @@ GitHubWebhook.post("/github", function triggerDeploy(req, res) {
     sender: { login },
     ref,
   } = req.body;
+  if (!ref || !login) return console.log(`No ref or sender found in request.`);
   console.log(`Push by ${login} ⇀ ${ref.replace("refs/heads/", "")}`);
-  if (ref.indexOf("prod") > -1 && login === githubUsername) {
+  if (ref.indexOf("prod") > -1 && login === username) {
     console.log(`🔩 Triggering ${project} deploy...`);
     deploy();
     res.status(200).send("✅ Deploy has been triggered. ");
