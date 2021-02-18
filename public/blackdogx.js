@@ -4,7 +4,7 @@
  *
  */
 const compose = (...fs) => (x) => fs.reduceRight((v, f) => f(v), x);
-const lazy = (f) => () => f();
+const lazy = (f) => (v) => f(v);
 const debug = console.log;
 /**
  * @function distance
@@ -28,7 +28,6 @@ const negation = (n) => -n;
 const avg = (x) => (y) => x + y / 2;
 const divideByTwo = (n) => n / 2;
 const not = (f) => !f();
-const on = (condition) => (f) => (o) => (condition ? f(o) : o);
 
 const utils = {
   compose,
@@ -41,7 +40,6 @@ const utils = {
   negation,
   avg,
   divideByTwo,
-  on,
 };
 
 /**
@@ -62,34 +60,28 @@ const audios = {
   bark: new Audio("./public/audio/bark.wav"),
 };
 const soundSprite = document.getElementById("sound");
-const randomPad50X = lazy(() => randomIntFromRangeWithPad(innerWidth)(50));
-const randomPad50Y = lazy(() => randomIntFromRangeWithPad(innerHeight)(50));
+const randomPadX = lazy(() => randomIntFromRangeWithPad(innerWidth)(50));
+const randomPadY = lazy(() => randomIntFromRangeWithPad(innerHeight)(50));
 
 /**
  *
  * @mechanics
  *
  */
-/**
- * @function collider
- * @returns an object and its colliding adversaries
- */
 const collider = (divideByTwo) => (distance) => (b) => (a) => {
   const hitboxA = divideByTwo(a.dimension);
   const hitboxB = divideByTwo(b.dimension);
   const distanceAToB = distance(a)(b);
   const colliding = distanceAToB <= hitboxA + hitboxB;
-  return colliding
-    ? { ...a, colliding: [...a.colliding.filter((c) => b.tag !== c.tag), b] }
-    : { ...a, colliding: [...a.colliding.filter((c) => b.tag !== c.tag)] };
+  return colliding;
 };
 const move = (o) => ({ ...o, x: o.x + o.velocity.x, y: o.y + o.velocity.y });
-const respawner = (randomPad50X) => (randomPad50Y) => (o) => ({
+const respawner = (randomPadX) => (randomPadY) => (o) => ({
   ...o,
-  x: randomPad50X(),
-  y: randomPad50Y(),
+  x: randomPadX(),
+  y: randomPadY(),
 });
-const respawn = respawner(randomPad50X)(randomPad50Y);
+const respawn = respawner(randomPadX)(randomPadY);
 const over = (z) => {
   // game over
 };
@@ -98,9 +90,9 @@ const moveW = (mover) => (o) => ({ ...o, x: mover.x, y: mover.y });
 const mechanics = {
   collider,
   move,
+  spawnEnemies,
   over,
   moveW,
-  respawn,
 };
 
 /**
@@ -125,28 +117,37 @@ const Mouse = (c) => ({
 const Score = (value) => (sprite) => ({
   value,
   sprite,
+  //   up({ score, enemy }) {
+  //     const enemyArea = Math.pow(enemy.dimension, 2),
+  //       windowArea = innerHeight * innerWidth,
+  //       enemyPercentage = enemyArea / windowArea;
+  //     score.value += enemyPercentage * 1000;
+  //     score.sprite.innerHTML = ~~score.value;
+  //   },
+  //   reset({ score }) {
+  //     score.value = 0;
+  //   },
 });
 
 const Player = (x) => (y) => (dimension) => (sprite) => ({
-  tag: "player",
   x,
   y,
   sprite,
   dimension,
-  colliding: [],
 });
 
 const Coin = (x) => (y) => (dimension) => (sprite) => ({
-  tag: "coin",
   x,
   y,
   sprite,
   dimension,
-  colliding: [],
+  //   respawn({ coin, randomIntFromRange }) {
+  //     coin.x = randomIntFromRange(50)(innerWidth - 50);
+  //     coin.y = randomIntFromRange(50)(innerHeight - 50);
+  //   },
 });
 
 const Enemy = (x) => (y) => (dimension) => (sprites) => (speed) => ({
-  tag: "enemy",
   x,
   y,
   sprite: sprites.L,
@@ -157,7 +158,55 @@ const Enemy = (x) => (y) => (dimension) => (sprites) => (speed) => ({
     x: speed,
     y: speed,
   },
-  colliding: [],
+  //   switchSprite({ enemy }) {
+  //     if (enemy.velocity.x < 0) enemy.sprite = enemy.spriteL;
+  //     else enemy.sprite = enemy.spriteR;
+  //   },
+  //   draw({
+  //     objects: { enemy, player, sound, c },
+  //     mechanics: { collide, move, over },
+  //   }) {
+  //     /**@mechanic game over when colliding with player */
+  //     /**@mechanic play bark sound when colliding with player */
+  //     // collide(enemy)(player)(() => {
+  //     //   over(z);
+  //     //   if (!sound.bark.muted) sound.bark.play();
+  //     // });
+
+  //     /**@mechanic move enemy */
+  //     // move(enemy);
+
+  //     /**@mechanic bounce enemy off walls */
+  //     {
+  //       const enemyDistanceFromBottom = distance(enemy)({
+  //         x: enemy.x,
+  //         y: innerHeight,
+  //       });
+  //       const enemyDistanceFromTop = enemyDistanceFromBottom - innerHeight;
+  //       const enemyDistanceFromRight = distance(enemy)({
+  //         x: innerWidth,
+  //         y: enemy.y,
+  //       });
+  //       const enemyDistanceFromLeft = enemyDistanceFromRight - innerWidth;
+
+  //       if (enemyDistanceFromBottom <= enemy.dimension)
+  //         enemy.velocity.y = negation(enemy.velocity.y);
+
+  //       if (enemyDistanceFromTop > 0)
+  //         enemy.velocity.y = negation(enemy.velocity.y);
+
+  //       if (enemyDistanceFromLeft > 0)
+  //         enemy.velocity.x = negation(enemy.velocity.x);
+
+  //       if (enemyDistanceFromRight <= enemy.dimension)
+  //         enemy.velocity.x = negation(enemy.velocity.x);
+  //     }
+
+  //     /**@mechanic switch sprite l <--> r */
+  //     enemy.switchSprite(z);
+
+  //     c.draw(enemy);
+  //   },
 });
 
 const Sound = (audios) => (sprite) => ({
@@ -178,15 +227,13 @@ const score = Score(0)(scoreSprite);
 
 const player = Player(mouse.x)(mouse.y)(50)(blackdogSprite);
 
-const coin = Coin(randomPad50X())(randomPad50Y())(50)(coinSprite);
+const coin = Coin(randomPadX(50))(randomPadY(50))(50)(coinSprite);
 
-const spawnEnemy = lazy(() =>
-  Enemy(randomPad50X())(randomPad50Y())(40)(enemySprites)(
-    nonZeroRandomIntFromRange(-5)(5)
-  )
-);
+// const enemy = lazy(
+//   Enemy(0)(0)(40)(enemySprites)(nonZeroRandomIntFromRange(-5)(5))
+// );
 
-const enemies = [spawnEnemy(), spawnEnemy(), spawnEnemy()];
+// const enemies = [...Array(3).map(enemy)];
 
 const sound = Sound(audios)(soundSprite);
 
@@ -240,7 +287,7 @@ addEventListener("click", () => {
 const Engine = (z) => {
   const {
     objects: { c, player, coin, enemies, mouse, score, sound },
-    mechanics: { collider, respawn },
+    mechanics: { collider },
     utils: { divideByTwo, distance },
   } = z;
 
@@ -250,32 +297,15 @@ const Engine = (z) => {
    *
    */
 
-  /**
-   *
-   * @collisions
-   *
-   */
-
   /** @player   */
-
   const moveWMouse = moveW(mouse);
   const zPlayer = compose(moveWMouse)(player);
 
   /** @coin   */
-  const collide = collider(divideByTwo)(distance);
-  const collideWithPlayer = collide(player);
 
-  const onCollisionWith = (adversary) => (f) => (o) =>
-    o.colliding.some((c) => c.tag === adversary.tag) ? f(o) : o;
+  const zCoin = { ...coin };
 
-  const onCollisionWithPlayer = onCollisionWith(player);
-
-  const zCoin = compose(
-    onCollisionWithPlayer(respawn),
-    collideWithPlayer
-  )(coin);
   /** @enemies   */
-
   const zEnemies = enemies.map(compose(move));
 
   /** @sound   */
@@ -284,6 +314,19 @@ const Engine = (z) => {
   /** @score   */
   const zScore = { ...score };
 
+  /** @collisions   */
+  const collide = collider(divideByTwo)(distance);
+  const playerCollidingWith = collide(player);
+  const playerCollidingWithCoin = playerCollidingWith(coin);
+  const playerCollidingWithAnEnemy = enemies.some(playerCollidingWith);
+
+  if (playerCollidingWithCoin) {
+    console.log(playerCollidingWithCoin ? "Player <> Coin" : "");
+  }
+
+  if (playerCollidingWithAnEnemy) {
+    console.log(playerCollidingWithAnEnemy ? "Player <> Enemy" : "");
+  }
   /**
    *
    * @ultrastate
