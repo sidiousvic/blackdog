@@ -29,7 +29,6 @@ const avg = (x) => (y) => x + y / 2;
 const divideByTwo = (n) => n / 2;
 const not = (f) => !f();
 const on = (condition) => (f) => (o) => (condition ? f(o) : o);
-
 const utils = {
   compose,
   lazy,
@@ -46,7 +45,7 @@ const utils = {
 
 /**
  *
- * @domelements
+ * @elements
  *
  */
 const canvasElement = document.querySelector("canvas");
@@ -64,43 +63,16 @@ const audios = {
 const soundSprite = document.getElementById("sound");
 const randomPad50X = lazy(() => randomIntFromRangeWithPad(innerWidth)(50));
 const randomPad50Y = lazy(() => randomIntFromRangeWithPad(innerHeight)(50));
-
-/**
- *
- * @mechanics
- *
- */
-/**
- * @function collider
- * @returns an object and its colliding adversaries
- */
-const collider = (divideByTwo) => (distance) => (b) => (a) => {
-  const hitboxA = divideByTwo(a.dimension);
-  const hitboxB = divideByTwo(b.dimension);
-  const distanceAToB = distance(a)(b);
-  const colliding = distanceAToB <= hitboxA + hitboxB;
-  return colliding
-    ? { ...a, colliding: [...a.colliding.filter((c) => b.tag !== c.tag), b] }
-    : { ...a, colliding: [...a.colliding.filter((c) => b.tag !== c.tag)] };
-};
-const move = (o) => ({ ...o, x: o.x + o.velocity.x, y: o.y + o.velocity.y });
-const respawner = (randomPad50X) => (randomPad50Y) => (o) => ({
-  ...o,
-  x: randomPad50X(),
-  y: randomPad50Y(),
-});
-const respawn = respawner(randomPad50X)(randomPad50Y);
-const over = (z) => {
-  // game over
-};
-const moveW = (mover) => (o) => ({ ...o, x: mover.x, y: mover.y });
-
-const mechanics = {
-  collider,
-  move,
-  over,
-  moveW,
-  respawn,
+const elements = {
+  canvasElement,
+  scoreSprite,
+  blackdogSprite,
+  coinSprite,
+  enemySprites,
+  audios,
+  soundSprite,
+  randomPad50X,
+  randomPad50Y,
 };
 
 /**
@@ -165,6 +137,65 @@ const Sound = (audios) => (sprite) => ({
   sprite,
 });
 
+const models = {
+  Canvas,
+  Mouse,
+  Score,
+  Player,
+  Coin,
+  Enemy,
+};
+
+/**
+ *
+ * @mechanics
+ *
+ */
+
+const collider = (divideByTwo) => (distance) => (b) => (a) => {
+  const hitboxA = divideByTwo(a.dimension);
+  const hitboxB = divideByTwo(b.dimension);
+  const distanceAToB = distance(a)(b);
+  const colliding = distanceAToB <= hitboxA + hitboxB;
+  return colliding
+    ? { ...a, colliding: [...a.colliding.filter((c) => b.tag !== c.tag), b] }
+    : { ...a, colliding: [...a.colliding.filter((c) => b.tag !== c.tag)] };
+};
+const colliding = (o) => o.colliding.length;
+const areColliding = (adversary) => (o) =>
+  o.colliding.some((c) => c.tag === adversary.tag);
+const onCollision = (f) => (adversary) => (o) =>
+  o.colliding.some((c) => c.tag === adversary.tag) ? f(o) : o;
+const move = (o) => ({ ...o, x: o.x + o.velocity.x, y: o.y + o.velocity.y });
+const respawner = (lazyX) => (lazyY) => (o) => ({
+  ...o,
+  x: lazyX(),
+  y: lazyY(),
+});
+const respawn = respawner(randomPad50X)(randomPad50Y);
+
+const spawn = (o) => (objects) => [...objects, o];
+
+const gameover = (z) => {
+  const { objects } = z;
+  const noEnemies = [];
+  oz = { ...z, objects: { ...objects, enemies: noEnemies } };
+  return oz;
+};
+const moveW = (mover) => (o) => ({ ...o, x: mover.x, y: mover.y });
+
+const mechanics = {
+  collider,
+  move,
+  gameover,
+  moveW,
+  respawn,
+  areColliding,
+  onCollision,
+  colliding,
+  spawn,
+};
+
 /**
  *
  * @objects
@@ -180,13 +211,7 @@ const player = Player(mouse.x)(mouse.y)(50)(blackdogSprite);
 
 const coin = Coin(randomPad50X())(randomPad50Y())(50)(coinSprite);
 
-const spawnEnemy = lazy(() =>
-  Enemy(randomPad50X())(randomPad50Y())(40)(enemySprites)(
-    nonZeroRandomIntFromRange(-5)(5)
-  )
-);
-
-const enemies = [spawnEnemy(), spawnEnemy(), spawnEnemy()];
+const enemies = [];
 
 const sound = Sound(audios)(soundSprite);
 
@@ -205,7 +230,7 @@ const objects = {
  * @gamestate
  *
  */
-const z = { utils, mechanics, objects };
+const z = { utils, mechanics, models, objects, elements };
 
 /**
  *
@@ -240,16 +265,18 @@ addEventListener("click", () => {
 const Engine = (z) => {
   const {
     objects: { c, player, coin, enemies, mouse, score, sound },
-    mechanics: { collider, respawn },
-    utils: { divideByTwo, distance },
+    mechanics: {
+      collider,
+      respawn,
+      onCollision,
+      areColliding,
+      colliding,
+      gameover,
+      spawn,
+    },
+    elements: { enemySprites, randomPad50X, randomPad50Y },
+    utils: { divideByTwo, distance, nonZeroRandomIntFromRange, on },
   } = z;
-
-  /**
-   *
-   * @processing
-   *
-   */
-
   /**
    *
    * @collisions
@@ -262,21 +289,31 @@ const Engine = (z) => {
   const zPlayer = compose(moveWMouse)(player);
 
   /** @coin   */
-  const collide = collider(divideByTwo)(distance);
-  const collideWithPlayer = collide(player);
-
-  const onCollisionWith = (adversary) => (f) => (o) =>
-    o.colliding.some((c) => c.tag === adversary.tag) ? f(o) : o;
-
-  const onCollisionWithPlayer = onCollisionWith(player);
+  const collideWithPlayer = collider(divideByTwo)(distance)(player);
+  const respawnOnCollisionWith = onCollision(respawn);
 
   const zCoin = compose(
-    onCollisionWithPlayer(respawn),
+    respawnOnCollisionWith(player),
     collideWithPlayer
   )(coin);
-  /** @enemies   */
 
-  const zEnemies = enemies.map(compose(move));
+  /** @enemies   */
+  const moveAll = (objects) => objects.map(move);
+  const collideAllWithPlayer = (objects) => objects.map(collideWithPlayer);
+
+  const newEnemy = Enemy(randomPad50X())(randomPad50Y())(40)(enemySprites)(
+    nonZeroRandomIntFromRange(-5)(5)
+  );
+  const spawnEnemy = spawn(newEnemy);
+  const playerAndCoinColliding = areColliding(zPlayer)(zCoin);
+
+  onPlayerAndCoinColliding = on(playerAndCoinColliding);
+
+  const zEnemies = compose(
+    onPlayerAndCoinColliding(spawnEnemy),
+    collideAllWithPlayer,
+    moveAll
+  )(enemies);
 
   /** @sound   */
   const zSound = { ...sound };
@@ -301,8 +338,19 @@ const Engine = (z) => {
     },
     mechanics,
     utils,
+    models,
+    elements,
   };
 
+  /**
+   *
+   * @gameover
+   *
+   */
+
+  const collidingWithEnemy = enemies.some(colliding);
+  if (collidingWithEnemy)
+    return requestAnimationFrame(() => Engine(gameover(uz)));
   /**
    *
    * @animation
