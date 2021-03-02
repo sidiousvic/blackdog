@@ -19,6 +19,7 @@ export const engine = (z) => {
 
   /** @player   */
   const moveWMouse = moveW(mouse);
+
   const zPlayer = compose(moveWMouse)(player);
 
   /** @coin   */
