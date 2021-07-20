@@ -4,7 +4,10 @@
  *
  */
 
-const compose = (...fns) => (x) => fns.reduceRight((v, f) => f(v), x);
+const compose =
+  (...fns) =>
+  (x) =>
+    fns.reduceRight((v, f) => f(v), x);
 
 const debug = console.log;
 
@@ -13,8 +16,10 @@ const debug = console.log;
  * @returns distance between two points
  * @math 𝑑 = √( ( 𝑥2 - 𝑥1 )² + ( 𝑦2 - 𝑦1 )² )
  */
-const distance = ({ x, y }) => ({ x: w, y: z }) =>
-  Math.sqrt(Math.pow(w - x, 2) + Math.pow(z - y, 2));
+const distance =
+  ({ x, y }) =>
+  ({ x: w, y: z }) =>
+    Math.sqrt(Math.pow(w - x, 2) + Math.pow(z - y, 2));
 
 const randomIntFromRange = (min) => (max) =>
   Math.floor(Math.random() * (max - min + 1) + min);
@@ -92,64 +97,69 @@ const Coin = (x) => (y) => (dimension) => (sprite) => ({
   },
 });
 
-const Enemy = (x) => (y) => (dimension) => ({ ...sprites }) => (speed) => ({
-  x,
-  y,
-  sprite: sprites.L,
-  spriteR: sprites.R,
-  spriteL: sprites.L,
-  dimension,
-  velocity: {
-    x: speed,
-    y: speed,
-  },
-  switchSprite({ enemy }) {
-    if (enemy.velocity.x < 0) enemy.sprite = enemy.spriteL;
-    else enemy.sprite = enemy.spriteR;
-  },
-  draw({ enemy, player, sound, over, collide, move, c }) {
-    /**@mechanic game over when colliding with player */
-    /**@mechanic play bark sound when colliding with player */
-    collide(enemy)(player)(() => {
-      over(z);
-      if (!sound.bark.muted) sound.bark.play();
-    });
-
-    /**@mechanic move enemy */
-    move(enemy);
-
-    /**@mechanic bounce enemy off walls */
-    {
-      const enemyDistanceFromBottom = distance(enemy)({
-        x: enemy.x,
-        y: innerHeight,
+const Enemy =
+  (x) =>
+  (y) =>
+  (dimension) =>
+  ({ ...sprites }) =>
+  (speed) => ({
+    x,
+    y,
+    sprite: sprites.L,
+    spriteR: sprites.R,
+    spriteL: sprites.L,
+    dimension,
+    velocity: {
+      x: speed,
+      y: speed,
+    },
+    switchSprite({ enemy }) {
+      if (enemy.velocity.x < 0) enemy.sprite = enemy.spriteL;
+      else enemy.sprite = enemy.spriteR;
+    },
+    draw({ enemy, player, sound, over, collide, move, c }) {
+      /**@mechanic game over when colliding with player */
+      /**@mechanic play bark sound when colliding with player */
+      collide(enemy)(player)(() => {
+        over(z);
+        if (!sound.bark.muted) sound.bark.play();
       });
-      const enemyDistanceFromTop = enemyDistanceFromBottom - innerHeight;
-      const enemyDistanceFromRight = distance(enemy)({
-        x: innerWidth,
-        y: enemy.y,
-      });
-      const enemyDistanceFromLeft = enemyDistanceFromRight - innerWidth;
 
-      if (enemyDistanceFromBottom <= enemy.dimension)
-        enemy.velocity.y = negation(enemy.velocity.y);
+      /**@mechanic move enemy */
+      move(enemy);
 
-      if (enemyDistanceFromTop > 0)
-        enemy.velocity.y = negation(enemy.velocity.y);
+      /**@mechanic bounce enemy off walls */
+      {
+        const enemyDistanceFromBottom = distance(enemy)({
+          x: enemy.x,
+          y: innerHeight,
+        });
+        const enemyDistanceFromTop = enemyDistanceFromBottom - innerHeight;
+        const enemyDistanceFromRight = distance(enemy)({
+          x: innerWidth,
+          y: enemy.y,
+        });
+        const enemyDistanceFromLeft = enemyDistanceFromRight - innerWidth;
 
-      if (enemyDistanceFromLeft > 0)
-        enemy.velocity.x = negation(enemy.velocity.x);
+        if (enemyDistanceFromBottom <= enemy.dimension)
+          enemy.velocity.y = negation(enemy.velocity.y);
 
-      if (enemyDistanceFromRight <= enemy.dimension)
-        enemy.velocity.x = negation(enemy.velocity.x);
-    }
+        if (enemyDistanceFromTop > 0)
+          enemy.velocity.y = negation(enemy.velocity.y);
 
-    /**@mechanic switch sprite l <--> r */
-    enemy.switchSprite(z);
+        if (enemyDistanceFromLeft > 0)
+          enemy.velocity.x = negation(enemy.velocity.x);
 
-    c.draw(enemy);
-  },
-});
+        if (enemyDistanceFromRight <= enemy.dimension)
+          enemy.velocity.x = negation(enemy.velocity.x);
+      }
+
+      /**@mechanic switch sprite l <--> r */
+      enemy.switchSprite(z);
+
+      c.draw(enemy);
+    },
+  });
 
 const Score = (value) => (sprite) => ({
   value,
@@ -166,16 +176,18 @@ const Score = (value) => (sprite) => ({
   },
 });
 
-const Sound = ({ ...audios }) => (sprite) => ({
-  ...audios,
-  sprite,
-  mute({ sound }) {
-    (sound.bark.muted = true), (sound.coin.muted = true);
-  },
-  unmute({ sound }) {
-    (sound.bark.muted = false), (sound.coin.muted = false);
-  },
-});
+const Sound =
+  ({ ...audios }) =>
+  (sprite) => ({
+    ...audios,
+    sprite,
+    mute({ sound }) {
+      (sound.bark.muted = true), (sound.coin.muted = true);
+    },
+    unmute({ sound }) {
+      (sound.bark.muted = false), (sound.coin.muted = false);
+    },
+  });
 
 const Mouse = (c) => ({
   x: c.width / 2,
@@ -241,9 +253,8 @@ const launch = ({ canvas, Mouse, Score, Player, Coin, Enemy, Sound }) => {
       R: document.getElementById("enemyR"),
       L: document.getElementById("enemy"),
     };
-    const spawnedEnemy = Enemy(randomEnemyX)(randomEnemyY)(40)(enemySprites)(
-      randomSpeedNotZero
-    );
+    const spawnedEnemy =
+      Enemy(randomEnemyX)(randomEnemyY)(40)(enemySprites)(randomSpeedNotZero);
     enemies.push(spawnedEnemy);
   };
 
