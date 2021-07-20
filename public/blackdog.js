@@ -289,11 +289,28 @@ const launch = ({ canvas, Mouse, Score, Player, Coin, Enemy, Sound }) => {
 
   /**@sideffects */
   addEventListener("resize", canvasSize);
+
   addEventListener("mousemove", ({ clientX, clientY }) => {
     mouse.x = clientX;
     mouse.y = clientY;
   });
+
+  addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      document.getElementById("start-overlay")?.remove();
+      if (sound.bark.muted) {
+        sound.sprite.src = "./public/images/soundon.png";
+        sound.unmute(z);
+        sound.bark.play();
+      } else {
+        sound.sprite.src = "./public/images/soundoff.png";
+        sound.mute(z);
+      }
+    }
+  });
+
   addEventListener("click", () => {
+    document.getElementById("start-overlay")?.remove();
     if (sound.bark.muted) {
       sound.sprite.src = "./public/images/soundon.png";
       sound.unmute(z);

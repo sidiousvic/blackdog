@@ -32,7 +32,8 @@ img {
   filter: invert(100%);
 }
 
-p {
+p,
+sup {
   color: black;
   font-size: 40;
   font-family: The Legend of Zelda NES;
@@ -54,4 +55,22 @@ p {
   top: 90px;
   left: 30px;
   z-index: 99;
+}
+
+#start-overlay {
+  background-color: rgb(247, 0, 37);
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  height: 100vh;
+  width: 100vw;
+  z-index: 99;
+  font-size: 30px;
+}
+
+sup {
+  font-size: 20px;
 }
