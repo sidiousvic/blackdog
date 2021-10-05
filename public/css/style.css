@@ -10,6 +10,7 @@ canvas {
   position: absolute;
   top: 0px;
   left: 0px;
+  filter: hue-rotate(60deg) !important;
 }
 /* * {
   cursor: url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7),
@@ -52,9 +53,8 @@ img {
   image-rendering: pixelated;
 }
 
-#enemy {
-  mix-blend-mode: difference;
-  filter: invert(100%);
+#green-hue {
+  filter: hue-rotate(90deg) !important;
 }
 
 p,
@@ -63,6 +63,10 @@ sup {
   font-size: 40;
   font-family: The Legend of Zelda NES;
   width: 500px;
+}
+
+img {
+  filter: hue-rotate(90deg) !important;
 }
 
 #title {
